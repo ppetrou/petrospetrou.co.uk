@@ -20,6 +20,6 @@ The Red Hat Products I have worked most are the following, and I always look for
 
 I also have an MEng. Software Engineering degree from Aberystwyth University (2005).
 
-My hobbies / interests are Snowboard, hiking and Golf.
+My hobbies / interests are snowboard, hiking and Golf.
 
 ![Profile Photo](/assets/profile.jpg)

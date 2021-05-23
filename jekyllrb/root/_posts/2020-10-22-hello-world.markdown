@@ -6,9 +6,6 @@ categories: hello
 tags: helloworld
 ---
 
-<script src="http://petrospetrou.co.uk/commentics/embed.js"></script>
-
-
 Hi, my name is Petros Petrou and this is my first blog post. If you want to know more about me have a look in [About]({% link about.markdown %}).
 I will try and keep this space active with stories and technical articles from my workplace and also my home lab.
 
