@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Who does the DNS Lookup? The browser or the operating system?"
-date:   2022-10-08 14:00:00 +0100
+date:   2022-10-09 14:00:00 +0100
 categories: os
 tags: dns, linux, resolver
 ---
@@ -12,29 +12,19 @@ what is the correct one. I ended up replying "The Browser" and was not sure if i
 
 In this blog I will present my analysis on this and walk you through the DNS lookup process.
 
-First we need to define each term in the question so there is no further confusion:
+First we need to analyse each term in the question:
 
-1. DNS Lookup -> An API call that takes as an argument a URL (e.g. petrospetrou.co.uk) and returns its IP address (e.g. 173.236.127.52).
-2. Browser -> An application which provides access to the World Wide Web
-3. Operating System -> This can be a bit complex to define, but for this context we will define the OS as the kernel. Lots can
-support and are probably right that other libraries are part of the operating system, but this does not lie within the technical
-nature of the question, or this is my understanding... :) I will elaborate a bit further on this at the end.
+1. Who does? -> Do we mean initiate the call or do the actual lookup on the nameserver?
+2. DNS Lookup -> An API call that takes as an argument a URL (e.g. petrospetrou.co.uk) and returns its IP address (e.g. 173.236.127.52).
+3. Browser -> An application which provides access to the World Wide Web
+4. Operating System -> This can be a bit complex to define. Do we mean just the kernel? Do we include standard libraries? More on this toward the end.
 
 Now lets see how a DNS Lookup works...
 
 When an application needs to resolve a hostname to an IP address it requires a DNS Lookup. This will query a name server and return the IP address
-of the hostname. Typical examples are the nslookup and dig utilities. Both utilities do the DNS Lookup and just return the IP address in the standard output.
+of the hostname. A typical example is the dig utility.
 
 ```
-[ppetrou@fedora root]$ nslookup www.petrospetrou.co.uk
-Server:		192.168.2.1
-Address:	192.168.2.1#53
-
-Non-authoritative answer:
-www.petrospetrou.co.uk	canonical name = petrospetrou.co.uk.
-Name:	petrospetrou.co.uk
-Address: 173.236.127.52
-
 [ppetrou@fedora root]$
 [ppetrou@fedora root]$ dig www.petrospetrou.co.uk
 
@@ -70,8 +60,7 @@ The [Standard C Library](https://www.gnu.org/software/libc/libc.html){:target="_
 
 When an application requires a DNS Lookup it can use the gethostbyname() function in order to resolve the hostname. You can find a simple C example [here](https://paulschreiber.com/blog/2005/10/28/simple-gethostbyname-example/){:target="_blank"}.
 
-In order to see this in a known application we can search the [source code](http://invisible-island.net/datafiles/release/lynx-cur.zip){:target="_blank"} of the text based [Lynx](https://lynx.invisible-island.net/lynx.html){:target="_blank"} browser. I have no time to analyse the code properly but we can see that there are multiple
-references to the gethostbyname() function.
+In order to see this in a known application we can search the [source code](http://invisible-island.net/datafiles/release/lynx-cur.zip){:target="_blank"} of the text based [Lynx](https://lynx.invisible-island.net/lynx.html){:target="_blank"} browser. I have no time to analyse the code properly but we can see that there are multiple references to the gethostbyname() function.
 
 ```
 ppetrou@fedora lynx2.9.0dev.10]$ grep -R gethostbyname *
@@ -110,14 +99,18 @@ Taking things a bit further we can also search for the same in the linux kernel 
 
 As expected no references exist so the browser does the DNS Lookup... or NOT??
 
-We can consider the above analysis correct and yes answer that the browser does the DNS Lookup BUT...
+If we go back to the beginning of the blog where we analysed the terms of the question we see that we raised of few ambiguities...
 
-glibc which provides the gethostbyname and gethostbyaddr function is considered part of the operating system which in our analysis
-we have left out as we defined the operating system as the kernel only!!
+If we consider that "does" means initiates then yes the browser does the DNS Lookup as the gethostbyname() function is called within the browser code.
+On the contrary if "does" means the actual nameserver lookup then this gets executed in the [resolver](https://tldp.org/LDP/nag2/x-087-2-resolv.library.html){:target="_blank"} which is part of the [Standard C Library](https://www.gnu.org/software/libc/libc.html){:target="_blank"} library and is considered part of the operating system. See a bit more [here].(https://en.wikipedia.org/wiki/C_standard_library){:target="_blank"}
 
-Also how do we interpret "Who does the DNS Lookup"?? Do we mean "initiate the lookup" or "query the name server"?
-If we interpret it as initiate then the browser is the correct answer. On the other hand if we interpret it as query the name server
-then it is the glibc which is considered part of the operating system :)
+So the call sequence from the browser to the name server is the following:
+
+```
+Web browser -> glibc -> resolver -> gethostbyname() -> nameserver
+```
+
+Also what we have proved from this analysis is that the kernel DOES NOT do the DNS Lookup in any case!
 
 I hope you enjoyed reading this blog as much I did when I was researching the topic. If you have any comments please leave them below.
 
