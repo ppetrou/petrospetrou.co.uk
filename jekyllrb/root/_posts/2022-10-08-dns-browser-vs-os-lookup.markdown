@@ -1,14 +1,12 @@
 ---
 layout: post
 title:  "Who does the DNS Lookup? The browser or the operating system?"
-date:   2022-10-09 14:00:00 +0100
+date:   2022-10-10 20:00:00 +0100
 categories: os
 tags: dns, linux, resolver
 ---
 
-A common interview question for infrastructure roles is "Who does the DNS Lookup? The browser or the Operating System". When I was asked this question
-lots of years ago my mind started spinning and was doing endless loops on what is the correct answer! Either was looking possible and could not justify
-what is the correct one. I ended up replying "The Browser" and was not sure if it was the correct answer but since this day I always wanted to research this further.
+A common interview question for infrastructure roles is "Who does the DNS Lookup? The browser or the Operating System". A few years ago when I had this question from a UK FS Consultancy, my mind started spinning and was doing endless loops on what could be the correct answer. As a passionate programmer I tend to overthink and my mind generates lots of possible solutions so I was not sure. I ended up replying "The Browser" and since this day I always wanted to research this further and see if this was correct or not :)
 
 In this blog I will present my analysis on this and walk you through the DNS lookup process.
 
@@ -17,12 +15,11 @@ First we need to analyse each term in the question:
 1. Who does? -> Do we mean initiate the call or do the actual lookup on the nameserver?
 2. DNS Lookup -> An API call that takes as an argument a URL (e.g. petrospetrou.co.uk) and returns its IP address (e.g. 173.236.127.52).
 3. Browser -> An application which provides access to the World Wide Web
-4. Operating System -> This can be a bit complex to define. Do we mean just the kernel? Do we include standard libraries? More on this toward the end.
+4. Operating System -> This can be a bit complex to define. Do we mean just the kernel? Do we include standard libraries? More on this towards the end.
 
 Now lets see how a DNS Lookup works...
 
-When an application needs to resolve a hostname to an IP address it requires a DNS Lookup. This will query a name server and return the IP address
-of the hostname. A typical example is the dig utility.
+When an application such as a web browser needs to resolve a hostname to an IP address it requires a DNS Lookup. This will query a name server and return the IP address of the hostname. A typical example is the dig utility.
 
 ```
 [ppetrou@fedora root]$
@@ -51,14 +48,14 @@ petrospetrou.co.uk.	146	IN	A	173.236.127.52
 
 But how is the DNS Lookup implemented?
 
-In order to explain this we will see Linux as the OS and C as the application implementation language. Something similar exists in other languages and Operating Systems but we have no access to their source code so we cannot elaborate further.
+In order to explain this we will see Linux as the OS and C as the language that the application is implemented. Something similar exists in other languages and Operating Systems but we have no access to their source code so we cannot elaborate further.
 
 The [Standard C Library](https://www.gnu.org/software/libc/libc.html){:target="_blank"} has a header file [netdb.h](https://github.com/bminor/glibc/blob/master/resolv/netdb.h){:target="_blank"} with definitions for network database operations. This is part of the [resolver library](https://tldp.org/LDP/nag2/x-087-2-resolv.library.html){:target="_blank"} which includes the following two methods.
 
 * gethostbyname()
 * gethostbyaddr()
 
-When an application requires a DNS Lookup it can use the gethostbyname() function in order to resolve the hostname. You can find a simple C example [here](https://paulschreiber.com/blog/2005/10/28/simple-gethostbyname-example/){:target="_blank"}.
+When an application requires a DNS Lookup it can use the gethostbyname() function in order to resolve the hostname. You can find a simple C program that does this [here](https://paulschreiber.com/blog/2005/10/28/simple-gethostbyname-example/){:target="_blank"}.
 
 In order to see this in a known application we can search the [source code](http://invisible-island.net/datafiles/release/lynx-cur.zip){:target="_blank"} of the text based [Lynx](https://lynx.invisible-island.net/lynx.html){:target="_blank"} browser. I have no time to analyse the code properly but we can see that there are multiple references to the gethostbyname() function.
 
@@ -93,16 +90,28 @@ WWW/Library/Implementation/HTTCP.h: *  The interface is intended to be the same 
 Taking things a bit further we can also search for the same in the linux kernel [source code](https://github.com/torvalds/linux){:target="_blank"} and see if there are any references there.
 
 ```
+[ppetrou@fedora linux]$ ls
+arch   certs    CREDITS  Documentation  fs       init      ipc     Kconfig  lib       MAINTAINERS  mm   README   scripts   sound  usr
+block  COPYING  crypto   drivers        include  io_uring  Kbuild  kernel   LICENSES  Makefile     net  samples  security  tools  virt
+[ppetrou@fedora linux]$
 [ppetrou@fedora linux]$ grep -R gethostbyname *
 [ppetrou@fedora linux]$
 ```
 
-As expected no references exist so the browser does the DNS Lookup... or NOT??
+As expected no references exist so the browser does the DNS Lookup... or NOT?? :)
 
 If we go back to the beginning of the blog where we analysed the terms of the question we see that we raised of few ambiguities...
 
 If we consider that "does" means initiates then yes the browser does the DNS Lookup as the gethostbyname() function is called within the browser code.
-On the contrary if "does" means the actual nameserver lookup then this gets executed in the [resolver](https://tldp.org/LDP/nag2/x-087-2-resolv.library.html){:target="_blank"} which is part of the [Standard C Library](https://www.gnu.org/software/libc/libc.html){:target="_blank"} library and is considered part of the operating system. See a bit more [here].(https://en.wikipedia.org/wiki/C_standard_library){:target="_blank"}
+On the contrary if "does" means the lookup of the host in the nameserver then this gets executed by the [resolver](https://tldp.org/LDP/nag2/x-087-2-resolv.library.html){:target="_blank"} which is part of the [Standard C Library](https://www.gnu.org/software/libc/libc.html){:target="_blank"} and is considered part of the operating system. It also cannot be removed as it includes lots of libraries such as the resolver or sudo, which could make the OS unusable. See below.
+
+```
+[root@lab1 ~]# sudo dnf remove glibc
+Error:
+ Problem: The operation would result in removing the following protected packages: sudo
+(try to add '--skip-broken' to skip uninstallable packages or '--nobest' to use not only best candidate packages)
+[root@lab1 ~]#
+```
 
 So the call sequence from the browser to the name server is the following:
 
