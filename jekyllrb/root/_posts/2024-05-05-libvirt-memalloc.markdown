@@ -52,6 +52,12 @@ stress-ng and malloc does not seem to do this? Is there another setting?
 We have disabled swappiness completely in the guest.
 
 
+
+https://lxr.linux.no/#linux+v2.6.34.1/drivers/virtio/virtio_balloon.c
+https://rwmj.wordpress.com/2010/07/17/virtio-balloon/
+
+
+
 The [Standard C Library](https://www.gnu.org/software/libc/libc.html){:target="_blank"} has a header file [netdb.h](https://github.com/bminor/glibc/blob/master/resolv/netdb.h){:target="_blank"} with definitions for network database operations. This is part of the [resolver library](https://tldp.org/LDP/nag2/x-087-2-resolv.library.html){:target="_blank"} which includes the following two methods.
 
 * gethostbyname()
