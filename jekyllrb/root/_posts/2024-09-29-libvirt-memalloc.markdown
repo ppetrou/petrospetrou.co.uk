@@ -80,6 +80,16 @@ stress --vm 4 --vm-keep --vm-bytes 1024M
 
 We need to test how the host can ask the memory back... stress test the hypervisor???
 
+The hypervisor stress process was killed by the oom-killer regardless if the kvm was requesting the memory.
+The RES mem of the qemu-kvm process was not decreased after stopping the stress test in the kvm.
+
+By adding the attribute freePageReporting="on" in the memballoon element of the kvm the RES mem is reduced gradually
+after terminating the stress test in the hypervisor.
+
+NB. The used memory though in the KVM does not become the remainder of Max-Current but stays low.
+If we set the currentMemory element using virsh then the baloon driver inflates and you can see that it hogs 
+the rest of the memory.
+
 The [Standard C Library](https://www.gnu.org/software/libc/libc.html){:target="_blank"} has a header file [netdb.h](https://github.com/bminor/glibc/blob/master/resolv/netdb.h){:target="_blank"} with definitions for network database operations. This is part of the [resolver library](https://tldp.org/LDP/nag2/x-087-2-resolv.library.html){:target="_blank"} which includes the following two methods.
 
 * gethostbyname()
