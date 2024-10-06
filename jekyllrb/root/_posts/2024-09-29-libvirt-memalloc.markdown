@@ -90,6 +90,22 @@ NB. The used memory though in the KVM does not become the remainder of Max-Curre
 If we set the currentMemory element using virsh then the baloon driver inflates and you can see that it hogs 
 the rest of the memory.
 
+maxMemory is the maximum memory a guest can be allocated by adding hot-plug memory devices
+
+<memory model='dimm' access='private' discard='yes'>
+  <target>
+    <size unit='GiB'>4</size>
+    <node>0</node>
+  </target>
+</memory>
+
+you can hot-plug memory to a kvm by using the attach-device virsh command and the above xml.
+This will add the memory to the kvm and make it available in the kvm
+
+https://libvirt.org/formatdomain.html#memory-devices
+https://libvirt.org/kbase/memorydevices.html
+
+
 The [Standard C Library](https://www.gnu.org/software/libc/libc.html){:target="_blank"} has a header file [netdb.h](https://github.com/bminor/glibc/blob/master/resolv/netdb.h){:target="_blank"} with definitions for network database operations. This is part of the [resolver library](https://tldp.org/LDP/nag2/x-087-2-resolv.library.html){:target="_blank"} which includes the following two methods.
 
 * gethostbyname()
