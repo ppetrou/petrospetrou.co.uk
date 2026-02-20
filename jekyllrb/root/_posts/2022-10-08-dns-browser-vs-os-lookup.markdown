@@ -128,4 +128,3 @@ Thank you,
 Petros
 
 
-<div id="commentics"></div>

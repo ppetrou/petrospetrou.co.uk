@@ -177,4 +177,3 @@ Petros
 
 
 
-<div id="commentics"></div>

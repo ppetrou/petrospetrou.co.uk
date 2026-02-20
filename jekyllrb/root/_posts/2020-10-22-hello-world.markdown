@@ -10,4 +10,4 @@ Hi, my name is Petros Petrou and this is my first blog post. If you want to know
 I will try and keep this space active with stories and technical articles from my workplace and also my home lab.
 
 
-<div id="commentics"></div>
+
